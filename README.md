@@ -1,6 +1,6 @@
 # ZXpand-Vitamins
 
-Here you will find toys to enhance your ZXpanding pleasure!
+Here you will find toys to enhance your ZXpanding pleasure :D
 
 Head over [to the wiki](https://github.com/charlierobson/ZXpand-Vitamins/wiki/ZXpand---Online-Manual) to find the Fine Manual which you may read at your leisure.
 
