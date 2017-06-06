@@ -1609,16 +1609,16 @@ design rules under a new name.</description>
 <signal name="3V3">
 <contactref element="X1" pad="10"/>
 </signal>
-<signal name="TDO">
+<signal name="RIGHT">
 <contactref element="X1" pad="7"/>
 </signal>
-<signal name="TDI">
+<signal name="UP">
 <contactref element="X1" pad="1"/>
 </signal>
-<signal name="TMS">
+<signal name="DOWN">
 <contactref element="X1" pad="3"/>
 </signal>
-<signal name="TCK">
+<signal name="LEFT">
 <contactref element="X1" pad="5"/>
 </signal>
 <signal name="FIRE">

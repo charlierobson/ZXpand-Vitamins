@@ -4161,6 +4161,8 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 9
 5
 -</text>
+<text x="127" y="157.48" size="1.778" layer="91">FTDI 5V TTL serial</text>
+<text x="127" y="193.04" size="1.778" layer="91">MIDI OUT</text>
 </plain>
 <instances>
 <instance part="X1" gate="-1" x="93.98" y="180.34"/>
@@ -4175,7 +4177,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <instance part="X1" gate="-10" x="93.98" y="157.48"/>
 <instance part="JP1" gate="A" x="127" y="172.72" rot="R180"/>
 <instance part="U$1" gate="G$1" x="134.62" y="208.28"/>
-<instance part="R1" gate="G$1" x="162.56" y="205.74"/>
+<instance part="R1" gate="G$1" x="157.48" y="210.82" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -4194,7 +4196,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <segment>
 <pinref part="U$1" gate="G$1" pin="2"/>
 <wire x1="149.86" y1="203.2" x2="157.48" y2="203.2" width="0.1524" layer="91"/>
-<label x="157.48" y="200.66" size="1.778" layer="95" rot="R270" xref="yes"/>
+<label x="157.48" y="203.2" size="1.778" layer="95" rot="R270" xref="yes"/>
 </segment>
 </net>
 <net name="5V0" class="0">
@@ -4205,8 +4207,8 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 </segment>
 <segment>
 <pinref part="R1" gate="G$1" pin="2"/>
-<wire x1="167.64" y1="205.74" x2="172.72" y2="205.74" width="0.1524" layer="91"/>
-<label x="172.72" y="205.74" size="1.778" layer="95" xref="yes"/>
+<wire x1="157.48" y1="215.9" x2="157.48" y2="218.44" width="0.1524" layer="91"/>
+<label x="157.48" y="218.44" size="1.778" layer="95" rot="R90" xref="yes"/>
 </segment>
 </net>
 <net name="3V3" class="0">
@@ -4216,28 +4218,28 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <label x="104.14" y="157.48" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="TDO" class="0">
+<net name="RIGHT" class="0">
 <segment>
 <pinref part="X1" gate="-7" pin="KL"/>
 <wire x1="99.06" y1="165.1" x2="109.22" y2="165.1" width="0.1524" layer="91"/>
 <label x="104.14" y="165.1" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="TDI" class="0">
+<net name="UP" class="0">
 <segment>
 <pinref part="X1" gate="-1" pin="KL"/>
 <wire x1="99.06" y1="180.34" x2="109.22" y2="180.34" width="0.1524" layer="91"/>
 <label x="104.14" y="180.34" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="TMS" class="0">
+<net name="DOWN" class="0">
 <segment>
 <pinref part="X1" gate="-3" pin="KL"/>
 <wire x1="99.06" y1="175.26" x2="109.22" y2="175.26" width="0.1524" layer="91"/>
 <label x="104.14" y="175.26" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="TCK" class="0">
+<net name="LEFT" class="0">
 <segment>
 <pinref part="X1" gate="-5" pin="KL"/>
 <wire x1="99.06" y1="170.18" x2="109.22" y2="170.18" width="0.1524" layer="91"/>
