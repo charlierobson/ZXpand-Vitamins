@@ -4,35 +4,29 @@ using System.IO.Ports;
 
 class Program
 {
-    private enum XmitState
-    {
-        Busy,
-        Done,
-        Error
-    }
-
     private static void Main(string[] args)
     {
+        if (args.Length < 2)
+        {
+            Console.WriteLine("Invalid arguments. Specify P file and serial device name.");
+            return;
+        }
+
         try
         {
-            if (args.Length < 2)
-            {
-                Console.WriteLine("Invalid arguments. Specify P file and serial device name.");
-                return;
-            }
+            var pBytes = File.ReadAllBytes(args[0]);
+            Console.WriteLine($"{pBytes.Length} bytes read.");
 
             var serialPortString = args[1];
-
-            Console.WriteLine($"Using serial port '{serialPortString}' 38400,8,N,1");
-
             var serial = new SerialPort(serialPortString, 38400) {ReadTimeout = 400};
+
             serial.Open();
             serial.DiscardInBuffer();
             serial.DiscardOutBuffer();
 
-            var pBytes = File.ReadAllBytes(args[0]);
+            Console.WriteLine($"Using serial port '{serialPortString}' 38400,8,N,1");
 
-            Console.WriteLine($"{pBytes.Length} bytes read.\nServer running.");
+            Console.WriteLine("Server running.");
 
             byte b = default(byte);
 
@@ -57,13 +51,13 @@ class Program
                         var blockLen = serial.ReadByte();
                         if (blockLen == 0) blockLen = 256;
 
-                        Console.Write($" -> {blockNum,3}, {blockLen}");
+                        Console.Write($" {blockNum,3}, {blockLen,3} -> ");
 
                         SendBlock(serial, pBytes, blockNum*256, blockLen);
                     }
                     else if (b == 'X')
                     {
-                        Console.Write($" -> OK\n");
+                        Console.WriteLine($" -> OK!");
                     }
                     else
                     {
@@ -95,6 +89,6 @@ class Program
 
         serial.Write(new byte[]{ (byte)(sum & 0xff), (byte)((sum >> 8) & 0xff) }, 0, 2);
 
-        Console.Write($"  CS: ${sum:X4}");
+        Console.Write($" ${sum:X4}");
     }
 }
