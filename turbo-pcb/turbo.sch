@@ -1019,6 +1019,11 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <sheets>
 <sheet>
 <plain>
+<text x="403.86" y="210.82" size="1.778" layer="91">Jumper socket</text>
+<text x="485.14" y="210.82" size="1.778" layer="91">AY1</text>
+<text x="561.34" y="210.82" size="1.778" layer="91">AY2</text>
+<text x="464.82" y="223.52" size="1.778" layer="91">A4 is fed to pin 2 on the jumper socket,
+which is N/C</text>
 </plain>
 <instances>
 <instance part="INPUT" gate="G$1" x="403.86" y="167.64"/>
@@ -1357,4 +1362,10 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 </sheets>
 </schematic>
 </drawing>
+<compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
+</compatibility>
 </eagle>
