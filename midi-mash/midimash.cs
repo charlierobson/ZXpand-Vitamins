@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public static class mp
 {
-    static bool verbose = true;
+    static bool verbose = false;
 
     static void VerboseWriteLine(string s)
     {
@@ -53,6 +53,10 @@ public static class mp
 
             var lines = File.ReadAllLines(args[0]);
 
+            var header = lines.FirstOrDefault(l => l.Contains("Header"));
+            var headerParts = header.Split(',').Select(p => p.Trim()).ToArray();
+            var ticksPerQuarterNote = int.Parse(headerParts[5]);
+
             var tempo = lines.FirstOrDefault(l => l.Contains("Tempo"));
             var tempoParts = tempo.Split(',').Select(p => p.Trim()).ToArray();
             var microsecondsPerQuarterNote = int.Parse(tempoParts[3]);
@@ -63,8 +67,7 @@ public static class mp
             var oneMinuteInMicroseconds = 60000000;
             var timeSignatureNumerator = int.Parse(timeSigParts[3]);
             var timeSignatureDenominator = Math.Pow(2, int.Parse(timeSigParts[4]));
-            var ticksPerQuarterNote = int.Parse(timeSigParts[5]);
-    
+
             var bpm = (oneMinuteInMicroseconds / microsecondsPerQuarterNote) * (timeSignatureDenominator / timeSignatureNumerator);
             Console.WriteLine($"BPM: {bpm}");
 
@@ -72,13 +75,15 @@ public static class mp
             var secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
             var fiftiethsPerTick = secondsPerTick * 50;
 
+            var biggestBlock = 0;
+            var lastTimeStamp = 0;
+
             foreach(var line in lines)
             {
                 var components = line.Split(',').Select(p => p.Trim()).ToArray();
                 if (msgMap.Keys.Contains(components[2]))
                 {
                     var deltaTimeInFiftieths = (int)(int.Parse(components[1]) * fiftiethsPerTick);
-                    VerboseWriteLine(deltaTimeInFiftieths.ToString());
                     if (!midi.ContainsKey(deltaTimeInFiftieths))
                     {
                         midi[deltaTimeInFiftieths] = new List<byte>();
@@ -86,6 +91,9 @@ public static class mp
 
                     var midiData = midi[deltaTimeInFiftieths];
                     midiData.AddRange(msgMap[components[2]](components));
+
+                    biggestBlock = Math.Max(biggestBlock, midiData.Count);
+                    lastTimeStamp = deltaTimeInFiftieths;
                 }
                 else
                 {
@@ -93,34 +101,26 @@ public static class mp
                 }
             }
 
-            VerboseWriteLine($"Seconds per tick: {secondsPerTick}");
+            const int HeaderByteCount = 3;
 
-            int biggestKey = 0;
-            int biggestBlock = 0;
+            var minBlockSize = (int)(Math.Pow(2, Math.Ceiling(Math.Log(biggestBlock + HeaderByteCount)/Math.Log(2))));
 
-            foreach(var key in midi.Keys)
-            {
-                var data = midi[key];
-                if (data.Count > biggestBlock)
-                {
-                    biggestBlock = data.Count;
-                    biggestKey = key;
-                }
-            }
+            Console.WriteLine($"Block size is {minBlockSize} bytes.");
 
-            VerboseWriteLine($"Block count: {midi.Count}");
-            VerboseWriteLine($"Biggest block ({biggestKey}) contains {biggestBlock} bytes.");
+            if (lastTimeStamp > UInt16.MaxValue)
+                Console.WriteLine("Error: time stamp cannot be represented by 16 bit value.");
 
             var rawFile = new List<byte>();
             foreach(var key in midi.Keys)
             {
+                // header = (word) required frame number, midi packet size in bytes
                 rawFile.Add((byte)(key & 255));
                 rawFile.Add((byte)(key / 256));
                 rawFile.Add((byte)(midi[key].Count));
 
                 rawFile.AddRange(midi[key]);
 
-                var blkRemain = 128 - midi[key].Count - 3;
+                var blkRemain = minBlockSize - HeaderByteCount - midi[key].Count;
                 rawFile.AddRange(new byte[blkRemain]);
             }
 
