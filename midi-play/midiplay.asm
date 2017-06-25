@@ -11,7 +11,7 @@
 
 	include 'SINCL-ZX\ZX81.INC'
 
-	S_OPEN		equ	1 ; ZXpand+ streaming API defines
+	S_OPEN		equ	1 			; ZXpand+ streaming API defines
 	S_READ		equ	2
 	S_WAIT		equ	4
 	S_STORE 	equ	8
@@ -28,23 +28,23 @@
 
 	REM _asm
 main:
-	ld	a,$ff
+	ld	a,$ff					; set next frame number to -1
 	ld	(frameNum),a
 	ld	(frameNum+1),a
 	ld	(frameNum+2),a
 
 readNextFrame:
-	ld	a,S_READ+S_WAIT ; read file -> wait for result
+	ld	a,S_READ+S_WAIT 		; read file & wait for result using stream API
 	ld	(API_OP),a
 	ld	a,128
 	ld	(API_DLEN),a
 	call	api_stream
 
-	ld	a,(API_RES)	; return on file error / done
+	ld	a,(API_RES)				; return on file error / done
 	cp	$40
 	ret	nz
 
-	in	a,($7)		; upper 8 address bits not needed for read
+	in	a,($7)					; upper 8 address bits not needed for read
 	ld	(frameCmp),a
 	in	a,($7)
 	ld	(frameCmp+1),a
@@ -133,20 +133,29 @@ frameCmp:
 AUTORUN:
 	PRINT "MIDIPLAY V0.95           0000000"
 	PRINT
+// Default filename if none is specified in LOAD command argument.
+// Extension will be added later.
 	LET A$ = "ALFIE"
-	LPRINT "GET PAR"
-	IF PEEK 16446 <> 0 THEN GOSUB #getparam#
+// If an extra argument was specified after the file name, then zxpand will have cached it.
+// GET PARAM will do just that.
+	LPRINT "GET PARAM"
+// Data length will be non-zero if an argument was cached.
+	IF PEEK #API_DLEN# <> 0 THEN GOSUB #getparam#
 	PRINT "PLAYING """ + A$ + """"
 	PRINT "PRESS A KEY TO STOP"
-	LPRINT "OPE MID"
-	LPRINT "OPE FIL " + A$ + ".ZXM"
+	LPRINT "OPEN MIDI"
+// All internal zxpand functions work with a single file.
+// Open the file here, use it in api calls!
+	LPRINT "OPEN FILE " + A$ + ".ZXM"
 	RAND USR #main
-	LPRINT "CLO MID"
+	LPRINT "CLOSE MIDI"
 	STOP
 getparam:
 	LET A$ = ""
-	FOR I = 1 TO PEEK 16446
-	LET A$ = A$ + CHR$(PEEK (16448 + I))
+    LET LEN = PEEK #API_DLEN#
+    LET PTR = PEEK #API_DPTR#
+	FOR I = 1 TO LEN
+	LET A$ = A$ + CHR$(PEEK (PTR + I))
 	NEXT I
 	RETURN
 
