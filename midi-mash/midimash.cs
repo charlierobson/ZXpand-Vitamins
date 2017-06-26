@@ -46,6 +46,12 @@ public static class mp
                         var bend = UInt16.Parse(s[4]);
                         return new byte[]{(byte)(0xe0|channel),(byte)(bend & 127), (byte)(bend / 128)};
                     }
+                },{
+                    "Header", null
+                },{
+                    "Tempo", null
+                },{
+                    "Time_signature", null
                 }
             };
 
@@ -54,26 +60,31 @@ public static class mp
             var lines = File.ReadAllLines(args[0]);
 
             var header = lines.FirstOrDefault(l => l.Contains("Header"));
-            var headerParts = header.Split(',').Select(p => p.Trim()).ToArray();
-            var ticksPerQuarterNote = int.Parse(headerParts[5]);
+            if (header == null) throw new Exception("No Header information found, unable to determine playback rate.");
 
             var tempo = lines.FirstOrDefault(l => l.Contains("Tempo"));
-            var tempoParts = tempo.Split(',').Select(p => p.Trim()).ToArray();
-            var microsecondsPerQuarterNote = int.Parse(tempoParts[3]);
+            if (tempo == null) throw new Exception("No Tempo information found, unable to determine playback rate.");
 
             var timeSig = lines.FirstOrDefault(l => l.Contains("Time_signature"));
+             if (timeSig == null) throw new Exception("No time signature information found, unable to determine playback rate.");
+
+            var headerParts = header.Split(',').Select(p => p.Trim()).ToArray();
+
+            var ticksPerQuarterNote = int.Parse(headerParts[5]);
+            var tempoParts = tempo.Split(',').Select(p => p.Trim()).ToArray();
             var timeSigParts = timeSig.Split(',').Select(p => p.Trim()).ToArray();
 
+            var microsecondsPerQuarterNote = int.Parse(tempoParts[3]);
             var oneMinuteInMicroseconds = 60000000;
             var timeSignatureNumerator = int.Parse(timeSigParts[3]);
             var timeSignatureDenominator = Math.Pow(2, int.Parse(timeSigParts[4]));
-
             var bpm = (oneMinuteInMicroseconds / microsecondsPerQuarterNote) * (timeSignatureDenominator / timeSignatureNumerator);
-            VerboseWriteLine($"BPM: {bpm}");
-
             var secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0f;
             var secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
             var fiftiethsPerTick = secondsPerTick * 50;
+
+            Console.WriteLine($"BPM: {bpm}");
+            Console.WriteLine($"Seconds per tick: {secondsPerTick}");
 
             var biggestBlock = 0;
             var lastTimeStamp = 0;
@@ -83,6 +94,8 @@ public static class mp
                 var components = line.Split(',').Select(p => p.Trim()).ToArray();
                 if (msgMap.Keys.Contains(components[2]))
                 {
+                    if (msgMap[components[2]] == null) continue;
+
                     var msg = msgMap[components[2]](components);
 
                     var deltaTimeInFiftieths = (int)(int.Parse(components[1]) * fiftiethsPerTick);
