@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public static class mp
 {
     static bool verbose = false;
+    static bool forceFourFour = false;
 
     static void VerboseWriteLine(string s)
     {
@@ -14,6 +15,21 @@ public static class mp
 
     static void Main(string[] args)
     {
+        var switches = args.Where(x => x.StartsWith("-"));
+        foreach (var sw in switches)
+        {
+            switch (sw)
+            {
+                case "-v":
+                case "-V":
+                    verbose = true;
+                    break;
+                case "-4":
+                    forceFourFour = true;
+                    break;
+            }
+
+        }
         try
         {
             var msgMap = new Dictionary<string, Func<string[], byte[]>>
@@ -66,30 +82,42 @@ public static class mp
             if (tempo == null) throw new Exception("No Tempo information found, unable to determine playback rate.");
 
             var timeSig = lines.FirstOrDefault(l => l.Contains("Time_signature"));
-             if (timeSig == null) throw new Exception("No time signature information found, unable to determine playback rate.");
+            if (timeSig == null) throw new Exception("No time signature information found, unable to determine playback rate.");
 
             var headerParts = header.Split(',').Select(p => p.Trim()).ToArray();
-
-            var ticksPerQuarterNote = int.Parse(headerParts[5]);
             var tempoParts = tempo.Split(',').Select(p => p.Trim()).ToArray();
             var timeSigParts = timeSig.Split(',').Select(p => p.Trim()).ToArray();
+            /*
+            0, 0, Header, 0, 1, 192
+            1, 0, Time_signature, 2, 2, 24, 8
+            1, 0, Tempo, 387096
+             */
+            var ticksPerQuarterNote = int.Parse(headerParts[5]);
 
+            const double oneMinuteInMicroseconds = 60000000;
             var microsecondsPerQuarterNote = int.Parse(tempoParts[3]);
-            var oneMinuteInMicroseconds = 60000000;
+
             var timeSignatureNumerator = int.Parse(timeSigParts[3]);
             var timeSignatureDenominator = Math.Pow(2, int.Parse(timeSigParts[4]));
-            var bpm = (oneMinuteInMicroseconds / microsecondsPerQuarterNote) * (timeSignatureDenominator / timeSignatureNumerator);
+            if (forceFourFour)
+            {
+                timeSignatureNumerator = 4;
+                timeSignatureDenominator = 4;
+            }
+
+            var bpm = Math.Round(oneMinuteInMicroseconds / microsecondsPerQuarterNote * (timeSignatureDenominator / timeSignatureNumerator));
+
             var secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0f;
             var secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
             var fiftiethsPerTick = secondsPerTick * 50;
 
             Console.WriteLine($"BPM: {bpm}");
-            Console.WriteLine($"Seconds per tick: {secondsPerTick}");
+            Console.WriteLine($"Time signature: {timeSignatureNumerator}/{timeSignatureDenominator}");
 
             var biggestBlock = 0;
-            var lastTimeStamp = 0;
+            var lastTick = 0;
 
-            foreach(var line in lines)
+            foreach (var line in lines)
             {
                 var components = line.Split(',').Select(p => p.Trim()).ToArray();
                 if (msgMap.Keys.Contains(components[2]))
@@ -98,7 +126,9 @@ public static class mp
 
                     var msg = msgMap[components[2]](components);
 
-                    var deltaTimeInFiftieths = (int)(int.Parse(components[1]) * fiftiethsPerTick);
+                    lastTick = int.Parse(components[1]);
+
+                    var deltaTimeInFiftieths = (int)(lastTick * fiftiethsPerTick);
                     if (!midi.ContainsKey(deltaTimeInFiftieths))
                     {
                         midi[deltaTimeInFiftieths] = new List<byte>();
@@ -109,7 +139,6 @@ public static class mp
                     midiData.AddRange(msg);
 
                     biggestBlock = Math.Max(biggestBlock, midiData.Count);
-                    lastTimeStamp = deltaTimeInFiftieths;
                 }
                 else
                 {
@@ -117,23 +146,28 @@ public static class mp
                 }
             }
 
+            var lastMinutes = Math.Floor(lastTick * secondsPerTick / 60);
+            var lastSeconds = (lastTick * secondsPerTick) - (60 * lastMinutes);
+
+            Console.WriteLine($"Duration: {lastMinutes}:{lastSeconds}");
+
             const int blockSize = 256;
-            const int HeaderByteCount = 4;
+            const int headerByteCount = 4;
 
             //var minBlockSize = (int)(Math.Pow(2, Math.Ceiling(Math.Log(biggestBlock + HeaderByteCount)/Math.Log(2))));
             //Console.WriteLine($"Block size is {minBlockSize} bytes.");
 
-            if (lastTimeStamp >= Math.Pow(2,24))
+            if (lastTick >= Math.Pow(2, 24))
                 Console.WriteLine("Error: time stamp cannot be represented by 24 bit value.");
 
-            if (biggestBlock > blockSize - HeaderByteCount)
+            if (biggestBlock > blockSize - headerByteCount)
             {
                 Console.WriteLine("Error: block size exceeds maximum.");
             }
             else
             {
                 var rawFile = new List<byte>();
-                foreach(var key in midi.Keys)
+                foreach (var key in midi.Keys)
                 {
                     // header = frame number @ 24 bits, midi packet size in bytes @ 8 bits
                     rawFile.Add((byte)((key & 0x0000ff)));
@@ -143,14 +177,14 @@ public static class mp
 
                     rawFile.AddRange(midi[key]);
 
-                    var blkRemain = blockSize - HeaderByteCount - midi[key].Count;
+                    var blkRemain = blockSize - headerByteCount - midi[key].Count;
                     rawFile.AddRange(new byte[blkRemain]);
                 }
 
                 File.WriteAllBytes(Path.ChangeExtension(args[0], ".zxm"), rawFile.ToArray());
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
         }
