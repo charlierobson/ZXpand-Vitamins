@@ -10,8 +10,7 @@ With this program and a ZX81 computer equipped with a ZXpand interface you can:
  * Delete files and empty directories
  * Rename files and directories
  * Move and copy files
- * Instantly become more attractive to the
-   opposite sex**
+ * Instantly become more attractive to the opposite sex**
 
 
 Help is always available by pressing Shift + H.
@@ -31,32 +30,29 @@ Shift + D                Delete the highlighted file or empty sub-directory.
 Shift + R                Rename the highlighted file.
 Shift + K                Create a sub-directory.
 Shift + X                Run the highlighted program with the 'X' flag.
+Shift + A                Load the highlighted program without auto-run.
 
 Shift + Space            Cancel text input.
 
 Shift + Q                Quit.
 
-The selection cursor may also be controlled with a joystick attached to a ZXpand-AY daughterboard. The button acts as the Enter key.
+The selection cursor may also be controlled with a joystick attached to a ZXpand-AY daughterboard or ZXpand+. The button acts as the Enter key.
 
 BMP viewer limitations:
  - mono (1bit)
  - no compression
  - image size max 256x192
 
-
-KMurta's JOY81 programmable joystick is configured when executing a program through the commander.
+KMurta's JOY81 programmable joystick is configured when executing a program through the commander. ZX printer owners - this may cause an unexpected and unwanted activation of the printer. The programmable joystick and printer are not compatible.
 
 
 The program comes with full source code. Please consider submitting any improvements or feature upgrades back to the author for inclusion in the official release.
 
-
-For full functionality you should have firmware version 2.2 or above flashed to your ZXpand interface. For instructions on how to do this please consult the documentation.
-
+For full functionality you should have firmware version 2.2 or above flashed to your ZXpand classic interface. For instructions on how to do this please consult the documentation.
 
 Code (mostly) by:
 
   SirMorris, Kelly Murta, Krystian Wlosek
-
 
 For submissions please contact: charlie_robson@hotmail.com
 For more sinclair ZX80/81 goodness please visit: http://www.sinclairzxworld.com/
@@ -64,6 +60,12 @@ For more sinclair ZX80/81 goodness please visit: http://www.sinclairzxworld.com/
 
 
 --== Change log ==--
+
+-- V2.00:-- 
+
+ + ZXpand+ support
+ + LOAD/STOP function added, press shift-A to load a program and disable auto-run.
+
 
 -- V1.8:-- 
 

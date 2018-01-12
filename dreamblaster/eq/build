@@ -1,0 +1,2 @@
+brass _-_eq.asm eq.p -s -l listing.html
+cp eq.p ../zedragon/ZXpand_SD_Card/menu.p
