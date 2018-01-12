@@ -2,6 +2,8 @@
 // COMPILE THIS USING ZX-IDE
 // http://www.sinclairzxworld.com/viewtopic.php?f=6&t=1064
 //
+// tl;dr:  file -> load _asm, ctrl-f9
+//
 
 	format zx81
 
@@ -130,26 +132,39 @@ frameCmp:
 
 
 	END _asm
+
 AUTORUN:
 	PRINT "MIDIPLAY V0.95           0000000"
 	PRINT
+
 // Default filename if none is specified in LOAD command argument.
 // Extension will be added later.
+
 	LET A$ = "ALFIE"
+
 // If an extra argument was specified after the file name, then zxpand will have cached it.
 // GET PARAM will do just that.
+
 	LPRINT "GET PARAM"
+
 // Data length will be non-zero if an argument was cached.
+
 	IF PEEK #API_DLEN# <> 0 THEN GOSUB #getparam#
+
 	PRINT "PLAYING """ + A$ + """"
 	PRINT "PRESS A KEY TO STOP"
 	LPRINT "OPEN MIDI"
+
 // All internal zxpand functions work with a single file.
 // Open the file here, use it in api calls!
+
 	LPRINT "OPEN FILE " + A$ + ".ZXM"
+
 	RAND USR #main
+
 	LPRINT "CLOSE MIDI"
 	STOP
+
 getparam:
 	LET A$ = ""
     LET LEN = PEEK #API_DLEN#
