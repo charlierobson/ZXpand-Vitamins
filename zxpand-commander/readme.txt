@@ -13,6 +13,10 @@ With this program and a ZX81 computer equipped with a ZXpand interface you can:
  * Instantly become more attractive to the opposite sex**
 
 
+Download latest here:
+https://github.com/charlierobson/ZXpand-Vitamins/raw/master/zxpand-commander/cmdr.p
+
+
 Help is always available by pressing Shift + H.
 
 Controls are as follows:
