@@ -37,6 +37,7 @@ FFLAGS      .equ  $60         ; selected file flags
 KBSTATE     .equ  $61         ; flag indicates waiting for release or press
 XLOADFLAG   .equ  $62         ; bit 0 set indicates we need a ';x' on the load command
 RENFLAGS    .equ  $63         ; rename flags
+ZXPTYPE     .equ  $64         ; zxpand state flags
 
 NUMINLIST   .equ  19
 MAXLISTIDX  .equ  NUMINLIST-1
@@ -106,6 +107,9 @@ starthere:
 
    call   memhigh                ; ram at 16-48k
 
+   call  detectZXpandType
+   ld    (iy+ZXPTYPE),a
+
 ; ===== Set Joy patch (kmurta) =========================================
    call  setjoy
 ; ======================================================================
@@ -121,14 +125,6 @@ starthere:
    ld    a,$c9                   ; RET
    ld    (inplaceconvert),a
 
-;   call  $02e7                   ; go fast - don't use proxy as we really really do need to disable nmis at this point
-
-;   call  titlescreen             ; reset FRAMES so we can count the time easily
-;   call  waitsync                ; it counts down, but zero crossings 'adversely affect operation of the machine' :¬.
-;   ld    hl,$ff32                ; set the lsb to the time to wait, then check that the msb is no longer $ff
-;   ld    (FRAMES),hl
-;
-;notitle:
    call  initpanedata
 
    ; load and display PANE1 data
@@ -137,16 +133,8 @@ starthere:
    call  loaddir                 ; updates working block
    call  acceptpanechanges       ; copy updated info in working pane back to the originator
 
-;introdelay:
-;   call  waitsync                ; wait until timeout expires, or continue immediately if the load took longer than that
-;   ld    a,(FRAMES+1)
-;   cp    $ff
-;   jr    z,introdelay
-
    call  drawscreen
 
-;   call  $207
-   
 mainloop:
    call  waitsync
    call  keyshow
@@ -778,7 +766,7 @@ sp_loop:
 
 ; ------------------------------------------------------------
 
-; return to basic, do not pass go, do not collect £200
+; return to basic, do not pass go, do not collect ï¿½200
 ;
 errorhard:
    ld    hl,(ERR_SP)
@@ -1071,7 +1059,7 @@ ep_wait:
 executeprog:
    ld    de,FILEPATH1
    bit   0,(iy+XLOADFLAG)
-   jr    z,ep_normal
+   jr    z,ep_normalOrStop
 
    res   0,(iy+XLOADFLAG)
 
@@ -1080,6 +1068,17 @@ executeprog:
    ld    (hl),$19             ; ';'
    inc   hl
    ld    (hl),$3d+$80         ; '[X]'
+   jr    ep_golow
+
+ep_normalOrStop:
+   bit   1,(iy+XLOADFLAG)
+   jr    z,ep_normal
+
+   res   1,(iy+XLOADFLAG)
+
+   call  copystring           ; copy the name
+   ex    de,hl
+   ld    (hl),227             ; ' STOP '
    jr    ep_golow
 
 ep_normal:
@@ -1580,11 +1579,11 @@ ge_addr:
 #include "tviewer.asm"
 ; ===== Set Joy patch (kmurta) =========================================
 #include "setjoy.asm"
-; ======================================================================
-
-; ===== BMP viewer  =====================================
+; ===== BMP viewer patch =====================================
 #include "bmpview.asm"
 ; ======================================================================
+
+#include "zxpand.asm"
 
 ; ---------------------------------------------------------- ;
 ; DATA SECTION . DATA SECTION .  DATA SECTION . DATA SECTION ;
@@ -1633,6 +1632,11 @@ keyStates:
    .db   0,0
    .dw   kType1
    .dw   keyXecute
+
+   .dw   $fcfd             ; load STOP [shift-a]
+   .db   0,0
+   .dw   kType1
+   .dw   keyLoadSTOP
 
    .dw   $f6fd             ; delete [shift-d]
    .db   0,0
@@ -1739,9 +1743,7 @@ deststr:
 
 titlestr:
 ;         --------========--------========
-   dt    "        ZXPAND-COMMANDER        "
-   db    $ff
-   dt    "VERSION 1.8"
+   dt    "     ZXPAND-COMMANDER  2.00     "
    db    $ff
    db    $0d
    dt    "CURSOR KEYS - MOVE SELECTION"
@@ -1763,6 +1765,8 @@ titlestr:
    dt    "SHIFT D - DELETE FILE"
    db    $ff
    dt    "SHIFT X - EXEC PROG WITH ;X FLAG"
+   db    $ff
+   dt    "SHIFT A - LOAD AND STOP (+)"
    db    $ff
    db    $0d
    dt    "SHIFT R - RENAME FILE"
