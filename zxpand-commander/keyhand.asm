@@ -360,6 +360,18 @@ keyXecute:
 ;
 ;
 
+keyLoadSTOP:
+   bit   0,(iy+ZXPTYPE)       ; return if classic
+   ret   z
+
+   set   1,(iy+XLOADFLAG)     ; requesting a ' STOP ' on load
+   jr    ke_extest
+
+
+;
+;
+;
+
 findFileType:
    ld    hl,FNBUF
    ld    a,$1B                ; '.'
