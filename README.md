@@ -5,8 +5,8 @@ Here you will find toys to enhance your ZXpanding pleasure :D
 Head over [to the wiki](https://github.com/charlierobson/ZXpand-Vitamins/wiki/ZXpand---Online-Manual) to find the Fine Manual which you may read at your leisure.
 
 The latest firmware will always be here.
-* Jan 2020 - TOMTE
-  * Adds serial communication functions
+* [Jan 2020 - TOMTE](https://github.com/charlierobson/ZXpand-Vitamins/blob/master/firmware/zxpandplus/tomte/zxpandfw.bin)
+  * Adds/improves serial communication functions
 
 Grab some PCB designs to build your very own [Turbo AY](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/turbo-pcb) or [serial breakout](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/serial-breakout) board!
 
