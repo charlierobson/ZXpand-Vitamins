@@ -7,11 +7,11 @@ void serialBegin(int val)
 	#asm
 
 	ld		bc,$0007		; reset transfer buffer, prepare zxpand to receive data
-	ld		a,b
+	ld		a,c
 	out		(c),a
 	call	waitForCommandCompletion
 
-	ld		hl,-4
+	ld		hl,2
 	add		hl,sp
 	ld		a,(hl)			; get val off the stack
 	ld		bc,$4007		; send val into buffer
@@ -66,11 +66,11 @@ void serialWrite(int val)
 	#asm
 
 	ld		bc,$0007		; reset transfer buffer, prepare to receive data
-	ld		a,b
+	ld		a,c
 	out		(c),a
 	call	waitForCommandCompletion
 
-	ld		hl,-4
+	ld		hl,2
 	add		hl,sp
 	ld		a,(hl)			; get val off the stack
 	ld		bc,$4007		; send val into buffer
@@ -90,14 +90,20 @@ waitForCommandCompletion:
 	#endasm
 }
 
+void serialWriteString(char* s) {
+	while(*s) {
+		serialWrite(*s);
+		++s;
+	}
+}
 
 void main()
 {
-	serialBegin(4); // 4 * 9600 = 38400
-	serialWrite('h');
-	serialWrite('i');
+	printf("Serial Test @ 1200\n\n");
+	serialBegin(1); // 1 * 1200
+	serialWriteString("The owls are not what they seem.\r\n");
 	while(1) {
-		if(serialAvailable()) {
+		while(serialAvailable()) {
 			putchar(serialRead());
 		}
 	}
