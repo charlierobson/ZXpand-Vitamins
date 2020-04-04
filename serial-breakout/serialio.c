@@ -18,7 +18,7 @@ void serialBegin(int val)
 	out		(c),a
 	call	waitForCommandCompletion
 
-	ld		bc,$e007		; ask how many characters in receive buffer
+	ld		bc,$e007		; set baud = 1200 * val
 	ld		a,$cb
 	out		(c),a
 	jp		waitForCommandCompletion
@@ -70,14 +70,14 @@ void serialWrite(int val)
 	out		(c),a
 	call	waitForCommandCompletion
 
-	ld		bc,$4007		; send val into buffer
 	ld		hl,-4
 	add		hl,sp
 	ld		a,(hl)			; get val off the stack
+	ld		bc,$4007		; send val into buffer
 	out		(c),a
 	call	waitForCommandCompletion
 
-	ld		bc,$e007		; write value from buffer
+	ld		bc,$e007		; write to serial port
 	ld		a,$c6
 	out		(c),a
 
