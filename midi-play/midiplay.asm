@@ -2,139 +2,127 @@
 // COMPILE THIS USING ZX-IDE
 // http://www.sinclairzxworld.com/viewtopic.php?f=6&t=1064
 //
-// tl;dr:  file -> load _asm, ctrl-f9
+// tl;dr:  file -> open, ctrl-f9
 //
 
 	format zx81
 
-	MEMAVL =  MEM_16K        // can be MEM_1K, MEM_2K, MEM_4K, MEM_8K, MEM_16K, MEM_32K, MEM_48K
+	MEMAVL =  MEM_16K	 // can be MEM_1K, MEM_2K, MEM_4K, MEM_8K, MEM_16K, MEM_32K, MEM_48K
 	STARTMODE EQU SLOW_MODE  // SLOW or FAST
 	DFILETYPE EQU EXPANDED	 // COLLAPSED or EXPANDED or AUTO
 
 	include 'SINCL-ZX\ZX81.INC'
 
-	S_OPEN		equ	1 			; ZXpand+ streaming API defines
+	S_OPEN		equ	1	; ZXpand+ streaming API defines
 	S_READ		equ	2
 	S_WAIT		equ	4
 	S_STORE 	equ	8
 
-	api_stream		equ	$1FF4	; vector addresses in ZXpand+ overlay ROM
+	api_stream	equ	$1FF4	; vector addresses in ZXpand+ overlay ROM
 	api_response	equ	$1FF6
 
-	API_OP		equ	16444		; API header addresses (PRBUFF - PRBUFF+32)
-	API_RES 	equ	16445
-	API_DLEN	equ	16446
-	API_DPTR	equ	16447
+	API_OP		equ	$403c	; API header addresses (PRBUFF - PRBUFF+32)
+	API_RES 	equ	$403d
+	API_DLEN	equ	$403e
+	API_DPTR	equ	$403f
 
 	AUTOLINE 10
 
-	REM _asm
+	REM	_asm
 main:
-	ld	a,$ff					; set next frame number to -1
+	ld	a,$ff			; set next frame number to -1
 	ld	(frameNum),a
 	ld	(frameNum+1),a
 	ld	(frameNum+2),a
 
-readNextFrame:
-	ld	a,S_READ+S_WAIT 		; read file & wait for result using stream API
+	ld	a,($4034)
+	dec	a
+	ld	(frameCache),a
+
+mainLoop:
+	ld	a,S_READ+S_WAIT 	; read file & wait for result using stream API
 	ld	(API_OP),a
-	ld	a,128
+	ld	a,0
 	ld	(API_DLEN),a
 	call	api_stream
 
-	ld	a,(API_RES)				; return on file error / done
+	ld	a,(API_RES)		; return on file error / done
 	cp	$40
 	ret	nz
 
-	in	a,($7)					; upper 8 address bits not needed for read
+	in	a,($7)			; upper 8 address bits not needed for read
 	ld	(frameCmp),a
 	in	a,($7)
 	ld	(frameCmp+1),a
 	in	a,($7)
-	ld	(frameCmp+1),a
+	ld	(frameCmp+2),a
 
-waitNextFrame:
-	call	frameWait
-	call	updateCounter
+	ld	a,(frameCache)
+	ld	hl,FRAMES
+	cp	(hl)
+
+innerLoop:
+	call	z,waitFrame
+
+	ld	a,($4034)
+	ld	(frameCache),a
+
 	ld	hl,(frameNum)
 	inc	hl
 	ld	(frameNum),hl
 	ld	a,h
 	or	l
-	jr	nz,.skip
+	jr	nz,skip
 
 	ld	a,(frameNum+2)
 	inc	a
 	ld	(frameNum+2),a
 
-.skip:
+skip:
 	ld	de,(frameCmp)
 	and	a
 	sbc	hl,de
 	ld	a,h
 	or	l
-	jr	nz,testQuit	; if it's not time to play, see if it's time to quit
+	jr	nz,exitCheck
 
 	ld	hl,frameNum+2
 	ld	a,(frameCmp+2)
 	sub	(hl)
-	jr	nz,testQuit
+	jr nz,exitCheck
 
-	; play and continue
-	;
 	ld	bc,$e007
 	ld	a,$c1
-	out	(c),a
-	call	api_response
-	jr	readNextFrame
+	out (c),a
+	call	$1ff6
+	jr	mainLoop
 
-testQuit:
-	call	$02bb		; quit if key pressed
+exitCheck:
+	call	$02bb			; quit if key pressed
 	inc	l
-	jr	z,waitNextFrame
+	jr	z,innerLoop
 
 	ret
 
-
-updateCounter:
-	ld	b,6		; max digits
-	ld	hl,(D_FILE)
-	ld	de,32
-	add	hl,de		; last digit in counter
-.cascade:
-	ld	a,(hl)
-	inc	a
-	cp	38	; '9'+1
-	jr	nz,.store
-	ld	a,28	; '0'
-.store:
-	ld	(hl),a
-	ret	nz		; return if we didn't roll over
-	dec	hl
-	djnz	.cascade
-	ret
-
-frameWait:
+waitFrame:
 	ld	hl,FRAMES
 	ld	a,(hl)
-.FrameLoop:
+.waitFrame:
 	cp	(hl)
-	jr	z,.FrameLoop
+	jr	z,.waitFrame
 	ret
 
+frameCache:
+    db	0
 frameNum:
 	db	0,0,0
-
 frameCmp:
 	dw	0,0,0
-
-
-
 
 	END _asm
 
 AUTORUN:
-	PRINT "MIDIPLAY V0.95           0000000"
+	PRINT "MIDIPLAY V1.00"
 	PRINT
 
 // Default filename if none is specified in LOAD command argument.
@@ -149,7 +137,7 @@ AUTORUN:
 
 // Data length will be non-zero if an argument was cached.
 
-	IF PEEK #API_DLEN# <> 0 THEN GOSUB #getparam#
+	IF PEEK #API_DLEN <> 0 THEN GOSUB #getparam#
 
 	PRINT "PLAYING """ + A$ + """"
 	PRINT "PRESS A KEY TO STOP"
@@ -167,10 +155,9 @@ AUTORUN:
 
 getparam:
 	LET A$ = ""
-    LET LEN = PEEK #API_DLEN#
-    LET PTR = PEEK #API_DPTR#
-	FOR I = 1 TO LEN
-	LET A$ = A$ + CHR$(PEEK (PTR + I))
+	LET P = #API_DPTR + 1
+	FOR I = 1 TO PEEK #API_DLEN
+	LET A$ = A$ + CHR$ PEEK (P + I)
 	NEXT I
 	RETURN
 
