@@ -1,0 +1,1 @@
+mono /usr/local/bin/Brass.exe main.asm sfxplay.p -s -l sfxplay.html
