@@ -12,4 +12,4 @@ Grab some PCB designs to build your very own [Turbo AY](https://github.com/charl
 
 If you're a developer you might find it useful to upload your work using a serial connection to save card swapping - in this case you'll need the [serial server](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/serial-server) program and knowledge of the mythical LOAD "$" command..!
 
-Perhaps you're curious about adding sound effects to your machine code game? Head over to [sfxplay-mc](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/sfxplay-mc)!
+Perhaps you're curious about adding sound effects to your machine code game? Head over to [sfxplay-mc](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/sfxplay-mc)! More of  BASIC person? [You're covered too](https://github.com/charlierobson/ZXpand-Vitamins/tree/master/sfxplay-rem)!
