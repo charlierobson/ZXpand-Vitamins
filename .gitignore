@@ -4,3 +4,4 @@
 *.sym
 *.p
 *.pdf
+.DS_Store

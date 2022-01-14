@@ -1,0 +1,2 @@
+mono /usr/local/bin/Brass.exe main.asm sfxrem.p -s -l sfxrem.html
+mono /usr/local/bin/Brass.exe main-nobank.asm sfxremnb.p -s -l sfxremnb.html
