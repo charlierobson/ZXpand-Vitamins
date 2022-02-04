@@ -1,0 +1,1 @@
+mono /usr/local/bin/Brass.exe main.asm sndtest.p -s -l sndtest.html

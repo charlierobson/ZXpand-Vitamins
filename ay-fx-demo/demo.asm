@@ -1,6 +1,8 @@
 ;;
 ;; Compile with "brass -s cmdr.asm cmdr.p"
 ;;
+	.exportmode NO$GMB
+	.export
 
 ; contains directives to map ascii->zxcsii in '.asc' statements
 #include "charmap.asm"
@@ -376,10 +378,11 @@ SCR_POS:
    dw    0
 
 
-   #include "ayfxplay.asm"
 
 sfx:
    #incbin "demo.afb"
+
+   #include "ayfxplay.asm"
 
 message:
    .asc  "press keys 1..9"

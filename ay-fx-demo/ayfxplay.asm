@@ -83,15 +83,15 @@ AFXFRAME:
 afxFrame0
 	push bc
 
-	ld a,11
-	ld h,(iy+1)			;the comparison of the high-order byte of the address to <11
+	ld a,$40			;16k = $4000
+	ld h,(iy+1)			;the comparison of the high-order byte of the address to < $40
 	cp h
 	jr nc,afxFrame7		;the channel does not play, we skip
+
 	ld l,(iy+0)
-	
 	ld e,(hl)			;we take the value of the information byte
 	inc hl
-			
+
 	sub b				;select the volume register:
 	ld d,b				;(11-3=8, 11-2=9, 11-1=10)
 
@@ -130,11 +130,13 @@ afxFrame1
 	ld a,(hl)			;read the meaning of noise
 	sub $20
 	jr c,afxFrame2		;less than $ 20, play on
+
 	ld h,a				;otherwise the end of the effect
+	ld l,h
 	ld b,$ff
-	ld b,c				;in BC we record the longest time
+	ld c,b
 	jr afxFrame6
-	
+
 afxFrame2
 	inc hl
 	ld (afxNseMix+1),a	;keep the noise value
@@ -207,12 +209,13 @@ AFXPLAY:
 	ld l,a
 	add hl,hl
 afxBnkAdr
-	ld bc,0				;address of the effect offsets table
+	ld bc,0				;address of the effect offsets table, self modified
 	add hl,bc
 	ld c,(hl)
 	inc hl
 	ld b,(hl)
 	add hl,bc			;the effect address is obtained in hl
+
 	push hl				;save the effect address on the stack
 	
 	ld hl,afxChDesc		;empty channel search
@@ -230,13 +233,14 @@ afxPlay0
 	jr c,afxPlay1
 	ld e,c				;remember the longest time
 	ld d,a
-	ld (peet),hl
+	ld (afxFreeChan+1),hl
 afxPlay1
 	inc hl
 	djnz afxPlay0
 
 	pop de				;take the effect address from the stack
-	ld hl,(peet)
+afxFreeChan
+	ld hl,0				;self modifies
 	ld (hl),b			;b is 0
 	dec hl
 	ld (hl),b
@@ -246,5 +250,4 @@ afxPlay1
 	ld (hl),e
 	ret
 
-peet:
-	.word	0
+
