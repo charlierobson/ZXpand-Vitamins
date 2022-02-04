@@ -49,6 +49,41 @@ starthere:
 mainloop:
    call  waitsync
 
+#if 0
+   ld    hl,xxdfile+69+66
+   ld    a,(afxChDesc)
+   call  outhex
+   ld    a,(afxChDesc+1)
+   call  outhex
+   inc   hl
+   ld    a,(afxChDesc+2)
+   call  outhex
+   ld    a,(afxChDesc+3)
+   call  outhex
+   
+   ld    hl,xxdfile+69+66+33
+   ld    a,(afxChDesc+4)
+   call  outhex
+   ld    a,(afxChDesc+5)
+   call  outhex
+   inc   hl
+   ld    a,(afxChDesc+6)
+   call  outhex
+   ld    a,(afxChDesc+7)
+   call  outhex
+
+   ld    hl,xxdfile+69+66+33+33
+   ld    a,(afxChDesc+8)
+   call  outhex
+   ld    a,(afxChDesc+9)
+   call  outhex
+   inc   hl
+   ld    a,(afxChDesc+10)
+   call  outhex
+   ld    a,(afxChDesc+11)
+   call  outhex
+#endif
+
    call  keyinput
    jr    z,mainloop
 
@@ -64,6 +99,21 @@ mainloop:
 
 
 ; ------------------------------------------------------------
+
+
+outhex:
+   push  af
+   rra
+   rra
+   rra
+   rra
+   call  {+}
+   pop   af
++: and   15
+   add   a,$1c
+   ld    (hl),a
+   inc   hl
+   ret
 
 isr:
    ld    a,r

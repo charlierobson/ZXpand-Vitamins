@@ -83,8 +83,8 @@ AFXFRAME:
 afxFrame0
 	push bc
 
-	ld a,$40			;16k = $4000
-	ld h,(iy+1)			;the comparison of the high-order byte of the address to < $40
+	ld a,11				;needs to be 11 - see volume register selection
+	ld h,(iy+1)			;the comparison of the high-order byte of the address to < 11
 	cp h
 	jr nc,afxFrame7		;the channel does not play, we skip
 
